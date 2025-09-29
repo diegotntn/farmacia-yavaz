@@ -1,42 +1,71 @@
+# Nombre del proyecto
 name: e_commerce_flutter
+
+# Descripción corta del proyecto
 description: E-Commerce App built in flutter using GetX
 
-
+# Evita publicar el paquete en pub.dev
 publish_to: 'none'
 
+# Versión de la app
 version: 1.0.0+1
 
+# ------------------ Entorno ------------------
 environment:
+  # Versión mínima y máxima de Dart soportada
   sdk: '>=3.0.0 <4.0.0'
 
+# ------------------ Dependencias ------------------
 dependencies:
+  # Flutter SDK
   flutter:
     sdk: flutter
 
-
+  # Gestión de estado con GetX
   get: ^4.6.6
+
+  # Indicadores de páginas para carruseles
   smooth_page_indicator: ^1.2.0+3
+
+  # Widget para rating de productos
   flutter_rating_bar: ^4.0.1
+
+  # Iconos de FontAwesome
   font_awesome_flutter: ^10.8.0
+
+  # Animaciones para transiciones de UI
   animations: ^2.0.11
+
+  # Barra inferior con estilo
   stylish_bottom_bar: ^1.1.0
 
+  # ------------------ NUEVO ------------------
+  # Provider para gestión de estado con ChangeNotifier
+  provider: ^6.0.5
+
+# ------------------ Dependencias de desarrollo ------------------
 dev_dependencies:
+  # Linter oficial de Flutter
   flutter_lints: ^5.0.0
+
+  # Framework de pruebas de Flutter
   flutter_test:
     sdk: flutter
+
+  # Para generar iconos de launcher automáticamente
   flutter_launcher_icons: ^0.14.2
 
+# ------------------ Configuración de íconos de launcher ------------------
 flutter_launcher_icons:
   android: "launcher_icon"
   image_path: "assets/images/logo.png"
-  adaptive_icon_background : "#ffffff"
-  adaptive_icon_foreground : "assets/images/logo.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/logo.png"
 
-
+# ------------------ Configuración general de Flutter ------------------
 flutter:
-
   uses-material-design: true
 
+  # Assets de imágenes usados en la app
   assets:
     - assets/images/

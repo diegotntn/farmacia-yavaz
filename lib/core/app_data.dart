@@ -8,16 +8,22 @@ import 'package:e_commerce_flutter/src/model/product_size_type.dart';
 import 'package:e_commerce_flutter/src/model/recommended_product.dart';
 import 'package:e_commerce_flutter/src/model/bottom_nav_bar_item.dart';
 
+/// Clase que almacena datos globales de la app, productos de ejemplo,
+/// categorías, colores y elementos de navegación.
 class AppData {
-  const AppData._();
+  const AppData._(); // Constructor privado para evitar instanciación
 
-  static const String dummyText = 'Lorem Ipsum is simply dummy text of the printing and typesetting'
+  /// Texto de ejemplo
+  static const String dummyText =
+      'Lorem Ipsum is simply dummy text of the printing and typesetting'
       ' industry. Lorem Ipsum has been the industry\'s standard dummy text'
       ' ever since the 1500s, when an unknown printer took a galley of type'
       ' and scrambled it to make a type specimen book.';
 
+  /// Lista de productos de ejemplo
   static List<Product> products = [
     Product(
+      sku: '0000000000001', // SKU único (13 dígitos aprox)
       name: 'Samsung Galaxy A53 5G',
       price: 460,
       isAvailable: true,
@@ -33,6 +39,7 @@ class AppData {
       type: ProductType.mobile,
     ),
     Product(
+      sku: '0000000000002',
       name: 'Samsung Galaxy Tab S7 FE',
       price: 380,
       isAvailable: false,
@@ -48,6 +55,7 @@ class AppData {
       type: ProductType.tablet,
     ),
     Product(
+      sku: '0000000000003',
       name: 'Samsung Galaxy Tab S8+',
       price: 650,
       isAvailable: true,
@@ -63,6 +71,7 @@ class AppData {
       type: ProductType.tablet,
     ),
     Product(
+      sku: '0000000000004',
       name: 'Samsung Galaxy Watch 4',
       price: 229,
       isAvailable: true,
@@ -85,6 +94,7 @@ class AppData {
       type: ProductType.watch,
     ),
     Product(
+      sku: '0000000000005',
       name: 'Apple Watch 7',
       price: 330,
       isAvailable: true,
@@ -106,6 +116,7 @@ class AppData {
       type: ProductType.watch,
     ),
     Product(
+      sku: '0000000000006',
       name: 'Beats studio 3',
       price: 230,
       isAvailable: true,
@@ -122,6 +133,7 @@ class AppData {
       type: ProductType.headphone,
     ),
     Product(
+      sku: '0000000000007',
       name: 'Samsung Q60 A',
       price: 497,
       isAvailable: true,
@@ -143,6 +155,7 @@ class AppData {
       type: ProductType.tv,
     ),
     Product(
+      sku: '0000000000008',
       name: 'Sony x 80 J',
       price: 498,
       isAvailable: true,
@@ -165,6 +178,7 @@ class AppData {
     ),
   ];
 
+  /// Categorías de productos
   static List<ProductCategory> categories = [
     ProductCategory(
       type: ProductType.all,
@@ -192,6 +206,7 @@ class AppData {
     ),
   ];
 
+  /// Colores aleatorios para tarjetas
   static List<Color> randomColors = [
     const Color(0xFFFCE4EC),
     const Color(0xFFF3E5F5),
@@ -205,6 +220,7 @@ class AppData {
 
   static const Color lightOrangeColor = Color(0xFFEC6813);
 
+  /// Items del bottom navigation bar
   static List<BottomNavBarItem> bottomNavBarItems = [
     const BottomNavBarItem(
       "Home",
@@ -224,6 +240,7 @@ class AppData {
     ),
   ];
 
+  /// Productos recomendados
   static List<RecommendedProduct> recommendedProducts = [
     RecommendedProduct(
       cardBackgroundColor: const Color(0xFFEC6813),
