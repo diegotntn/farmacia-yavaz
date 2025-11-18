@@ -1,137 +1,160 @@
 import 'package:flutter/material.dart';
+import '../model/user.dart';
 import '../model/client.dart';
 import '../model/vendor.dart';
-import '../model/user.dart';
 import 'client_controller.dart';
 import 'vendor_controller.dart';
 
-/// Controlador de autenticación
-/// Maneja login, registro y logout de clientes y vendedores
-/// Hereda de ChangeNotifier para notificar cambios a la UI
+/// -------------------------------------------------------------------------
+/// 🔐 AuthController
+///
+/// Controlador principal para la autenticación de usuarios en la app:
+///   - Login simulado para Cliente o Vendedor
+///   - Registro simulado
+///   - Logout y limpieza de estado
+///
+/// Usa [ChangeNotifier] para actualizar la UI cuando cambie el usuario.
+/// Puede recibir controladores de cliente y vendedor como dependencias.
+/// -------------------------------------------------------------------------
 class AuthController extends ChangeNotifier {
-  /// Usuario actualmente logueado (puede ser Client o Vendor)
+  // -----------------------------------------------------------------------
+  // 🔹 Usuario actualmente autenticado
+  // -----------------------------------------------------------------------
   User? _currentUser;
 
-  /// Referencias opcionales a controladores de cliente y vendedor
-  /// Para actualizar carrito, productos, historial, etc.
+  // -----------------------------------------------------------------------
+  // 🔹 Controladores opcionales para cliente y vendedor
+  // -----------------------------------------------------------------------
   final ClientController? clientController;
   final VendorController? vendorController;
 
-  /// Constructor opcional, permite inyección de dependencias
-  AuthController({this.clientController, this.vendorController});
+  // -----------------------------------------------------------------------
+  // 🔹 Constructor (permite inyección de dependencias)
+  // -----------------------------------------------------------------------
+  AuthController({
+    this.clientController,
+    this.vendorController,
+  });
 
-  /// Getter del usuario actual
+  // -----------------------------------------------------------------------
+  // 🔹 Getters públicos
+  // -----------------------------------------------------------------------
+
+  /// Devuelve el usuario actual (cliente o vendedor)
   User? get currentUser => _currentUser;
 
-  /// Indica si hay un usuario logueado
+  /// Verifica si hay sesión activa
   bool get isLoggedIn => _currentUser != null;
 
-  // ----------------- LOGIN -----------------
+  // -----------------------------------------------------------------------
+  // 🔸 LOGIN SIMULADO
+  // -----------------------------------------------------------------------
 
-  /// Método para iniciar sesión
-  /// [email] y [password]: credenciales
-  /// [isVendor]: true si es vendedor, false si es cliente
+  /// Simula el inicio de sesión para cliente o vendedor
   Future<bool> login({
     required String email,
     required String password,
     required bool isVendor,
   }) async {
-    // Simula una llamada a backend
     await Future.delayed(const Duration(seconds: 1));
 
-    // Dependiendo del rol, se crea un usuario demo
     if (isVendor) {
+      // Crear vendedor simulado
       _currentUser = Vendor(
+        id: 1,
         email: email,
         password: password,
-        storeName: 'Tienda Demo',
-        storeAddress: 'Dirección Demo',
+        name: 'Vendedor Demo',
+        storeName: 'Farmacia Modelo',
+        storeAddress: 'Calle Principal 101',
       );
-      // Si existe VendorController, podríamos inicializar productos
       vendorController?.setVendor(_currentUser as Vendor);
     } else {
+      // Crear cliente simulado
       _currentUser = Client(
+        id: 1,
         email: email,
         password: password,
-        phoneNumber: '1234567890',
-        address: 'Dirección Demo',
+        name: 'Cliente Demo',
+        phoneNumber: '5559876543',
+        address: 'Colonia Centro',
       );
-      // Si existe ClientController, podríamos inicializar carrito o historial
       clientController?.setClient(_currentUser as Client);
     }
 
-    // Notifica a la UI que hubo un cambio
     notifyListeners();
-    return true; // login exitoso
+    return true;
   }
 
-  // ----------------- REGISTRO -----------------
+  // -----------------------------------------------------------------------
+  // 🔸 REGISTRO SIMULADO (CLIENTE)
+  // -----------------------------------------------------------------------
 
-  /// Registro de un cliente
+  /// Registra un nuevo cliente
   Future<bool> registerClient({
     required String email,
     required String password,
-    String? nombreCompleto,
+    String? name,
     DateTime? fechaNacimiento,
     String? phoneNumber,
     String? address,
   }) async {
-    // Simula request al backend
     await Future.delayed(const Duration(seconds: 1));
 
-    // Crea cliente y lo asigna como usuario actual
     _currentUser = Client(
+      id: 2,
       email: email,
       password: password,
-      nombreCompleto: nombreCompleto,
+      name: name ?? 'Nuevo Cliente',
       fechaNacimiento: fechaNacimiento,
       phoneNumber: phoneNumber,
       address: address,
     );
 
-    // Actualiza ClientController si existe
     clientController?.setClient(_currentUser as Client);
-
     notifyListeners();
     return true;
   }
 
-  /// Registro de un vendedor
+  // -----------------------------------------------------------------------
+  // 🔸 REGISTRO SIMULADO (VENDEDOR)
+  // -----------------------------------------------------------------------
+
+  /// Registra un nuevo vendedor
   Future<bool> registerVendor({
     required String email,
     required String password,
-    String? nombreCompleto,
+    String? name,
     DateTime? fechaNacimiento,
     String? storeName,
     String? storeAddress,
   }) async {
-    // Simula request al backend
     await Future.delayed(const Duration(seconds: 1));
 
-    // Crea vendedor y lo asigna como usuario actual
     _currentUser = Vendor(
+      id: 3,
       email: email,
       password: password,
-      nombreCompleto: nombreCompleto,
+      name: name ?? 'Nuevo Vendedor',
       fechaNacimiento: fechaNacimiento,
       storeName: storeName,
       storeAddress: storeAddress,
     );
 
-    // Actualiza VendorController si existe
     vendorController?.setVendor(_currentUser as Vendor);
-
     notifyListeners();
     return true;
   }
 
-  // ----------------- LOGOUT -----------------
+  // -----------------------------------------------------------------------
+  // 🔸 LOGOUT
+  // -----------------------------------------------------------------------
 
-  /// Cierra sesión y limpia el usuario actual
+  /// Cierra sesión y reinicia los controladores relacionados
   void logout() {
     _currentUser = null;
 
-    // Limpiar datos de controladores opcionales
+    // Limpieza de datos
     clientController?.clearCart();
     vendorController?.products.clear();
 

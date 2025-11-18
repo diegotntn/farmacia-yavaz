@@ -2,83 +2,138 @@ import 'package:flutter/material.dart';
 import '../model/product.dart';
 import '../model/client.dart';
 
-/// Controlador que maneja la lógica de un cliente dentro de la app
-/// Incluye: carrito de compras, historial de pedidos y el cliente actual.
-/// Hereda de ChangeNotifier para notificar cambios a la UI.
+/// ---------------------------------------------------------------------------
+/// 🧑‍💼 ClientController
+///
+/// Controlador que gestiona los datos y acciones del cliente en sesión.
+/// Utiliza `ChangeNotifier` para notificar cambios a la UI de forma reactiva.
+///
+/// Funcionalidades principales:
+/// - Autenticación de cliente
+/// - Carrito de compras (agregar, quitar, limpiar)
+/// - Historial de pedidos (registro, consulta)
+/// - Limpieza de datos al cerrar sesión
+/// ---------------------------------------------------------------------------
 class ClientController extends ChangeNotifier {
-  /// Cliente actualmente logueado
-  Client? _currentClient;
+  // ===========================================================================
+  // 🔐 CLIENTE ACTUAL (Autenticado)
+  // ===========================================================================
 
-  /// Getter para obtener el cliente actual
-  Client? get currentClient => _currentClient;
+  /// Cliente autenticado en sesión
+  Client? _client;
 
-  // ------------------ Carrito de compras ------------------
+  /// Getter para acceder al cliente actual
+  Client? get client => _client;
 
-  /// Lista interna que representa los productos agregados al carrito
+  /// Asigna el cliente al iniciar sesión
+  void setClient(Client client) {
+    _client = client;
+    notifyListeners(); // Notifica a la UI que el cliente ha cambiado
+  }
+
+  // ===========================================================================
+  // 🛒 CARRITO DE COMPRAS
+  // ===========================================================================
+
+  /// Lista privada de productos agregados al carrito
   final List<Product> _cart = [];
 
-  /// Getter que devuelve una copia no modificable del carrito
+  /// Devuelve una lista no modificable del carrito actual
   List<Product> get cart => List.unmodifiable(_cart);
 
-  /// Calcula el total del carrito sumando el precio de cada producto
-  double get cartTotal => _cart.fold(0.0, (sum, item) => sum + item.price);
+  /// Calcula el total del carrito (sumando precio * cantidad por producto)
+  double get cartTotal => _cart.fold(
+        0.0,
+        (total, item) =>
+            total + (item.quantity * (item.off?.toDouble() ?? item.price)),
+      );
 
-  // ------------------ Historial de pedidos ------------------
+  /// Verifica si un producto ya está en el carrito
+  bool isInCart(Product product) => _cart.contains(product);
 
-  /// Lista de pedidos realizados, cada pedido es una lista de productos
-  final List<List<Product>> _orderHistory = [];
-
-  /// Getter que devuelve una copia no modificable del historial de pedidos
-  List<List<Product>> get orderHistory => List.unmodifiable(_orderHistory);
-
-  // ------------------ Cliente actual ------------------
-
-  /// Establece el cliente actual y notifica a la UI
-  void setClient(Client client) {
-    _currentClient = client;
-    notifyListeners();
-  }
-
-  // ------------------ Métodos del carrito ------------------
-
-  /// Agrega un producto al carrito y notifica cambios
+  /// Agrega un producto al carrito (solo si no supera el stock)
   void addToCart(Product product) {
-    _cart.add(product);
-    notifyListeners();
+    if (product.quantity < product.stock) {
+      product.quantity++;
+      if (!_cart.contains(product)) {
+        _cart.add(product);
+      }
+      notifyListeners();
+    } else {
+      debugPrint("❌ Stock insuficiente para agregar más de: ${product.name}");
+    }
   }
 
-  /// Elimina un producto del carrito y notifica cambios
+  /// Disminuye la cantidad de un producto o lo elimina si llega a 0
+  void decreaseFromCart(Product product) {
+    if (product.quantity > 0) {
+      product.quantity--;
+      if (product.quantity == 0) {
+        _cart.remove(product);
+      }
+      notifyListeners();
+    }
+  }
+
+  /// Elimina completamente un producto del carrito
   void removeFromCart(Product product) {
     _cart.remove(product);
+    product.quantity = 0;
     notifyListeners();
   }
 
-  /// Vacía todo el carrito y notifica cambios
+  /// Vacía completamente el carrito
   void clearCart() {
+    for (var item in _cart) {
+      item.quantity = 0; // Reinicia cantidades
+    }
     _cart.clear();
     notifyListeners();
   }
 
-  // ------------------ Métodos de pedidos ------------------
+  /// Verifica si el carrito está vacío
+  bool get isCartEmpty => _cart.isEmpty;
 
-  /// Realiza un pedido con los productos del carrito
-  /// - Agrega el carrito al historial de pedidos
-  /// - Limpia el carrito
+  // ===========================================================================
+  // 📦 HISTORIAL DE PEDIDOS
+  // ===========================================================================
+
+  /// Lista de pedidos pasados (cada uno es una lista de productos)
+  final List<List<Product>> _orderHistory = [];
+
+  /// Devuelve una lista no modificable del historial de pedidos
+  List<List<Product>> get orderHistory => List.unmodifiable(_orderHistory);
+
+  /// Registra un nuevo pedido (si el carrito no está vacío)
   void placeOrder() {
-    if (_cart.isEmpty) return; // No se permite pedido vacío
+    if (_cart.isEmpty) return;
 
-    _orderHistory.add(List<Product>.from(_cart)); // Copia del carrito
-    clearCart(); // Vacía el carrito
+    // Copia los productos actuales como un nuevo pedido
+    _orderHistory.add(
+      _cart.map((p) => Product.fromJson(p.toJson())).toList(),
+    );
 
-    notifyListeners(); // Notifica cambios a la UI
+    clearCart(); // Limpia el carrito tras realizar pedido
+    notifyListeners(); // Notifica a la UI del cambio en historial
   }
 
-  // ------------------ Funciones adicionales ------------------
-
-  /// Obtiene los pedidos recientes
-  /// [count]: cantidad de pedidos a retornar (por defecto 5)
+  /// Devuelve los últimos [count] pedidos (por defecto 5)
   List<List<Product>> getRecentOrders({int count = 5}) {
-    // Devuelve los últimos 'count' pedidos del historial
     return _orderHistory.reversed.take(count).toList();
+  }
+
+  /// Verifica si el cliente ya ha realizado pedidos
+  bool get hasOrders => _orderHistory.isNotEmpty;
+
+  // ===========================================================================
+  // 🔄 RESET GENERAL (logout o reinicio de sesión)
+  // ===========================================================================
+
+  /// Limpia cliente, carrito y pedidos (ej. al cerrar sesión)
+  void clearAll() {
+    _client = null;
+    _cart.clear();
+    _orderHistory.clear();
+    notifyListeners();
   }
 }

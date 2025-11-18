@@ -1,37 +1,116 @@
-import 'package:get/get.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:e_commerce_flutter/core/app_data.dart';
-import 'package:e_commerce_flutter/core/app_color.dart';
-import 'package:e_commerce_flutter/src/controller/product_controller.dart';
-import 'package:e_commerce_flutter/src/view/widget/product_grid_view.dart';
-import 'package:e_commerce_flutter/src/view/widget/list_item_selector.dart';
+import 'package:get/get.dart';
 
+import 'package:e_commerce_flutter/core/app_color.dart';
+import 'package:e_commerce_flutter/core/app_data.dart';
+
+import 'package:e_commerce_flutter/src/controller/product_controller.dart';
+import 'package:e_commerce_flutter/src/view/widget/list_item_selector.dart';
+import 'package:e_commerce_flutter/src/view/widget/product_grid_view.dart';
+
+/// Tipos de botones del AppBar
 enum AppbarActionType { leading, trailing }
 
+/// Controlador global GetX (productos)
 final ProductController controller = Get.put(ProductController());
 
+/// =====================================================================
+///                           PROMO CAROUSEL
+/// =====================================================================
+class _PromoCarousel extends StatefulWidget {
+  const _PromoCarousel({super.key});
+
+  @override
+  State<_PromoCarousel> createState() => _PromoCarouselState();
+}
+
+class _PromoCarouselState extends State<_PromoCarousel> {
+  final PageController _pageController = PageController(viewportFraction: 0.92);
+  final List<String> banners = [
+    "assets/images/promocion1.png",
+    "assets/images/promocion2.png",
+  ];
+
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _timer = Timer.periodic(const Duration(seconds: 7), (_) {
+      if (!mounted) return;
+      _currentPage = (_currentPage + 1) % banners.length;
+      _pageController.animateToPage(
+        _currentPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: banners.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Image.asset(
+                banners[index],
+                fit: BoxFit.cover,
+                width: double.infinity,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// =====================================================================
+///                           PRODUCT LIST SCREEN
+/// =====================================================================
 class ProductListScreen extends StatelessWidget {
   const ProductListScreen({super.key});
-  Widget appBarActionButton(AppbarActionType type) {
-    IconData icon = Icons.ac_unit_outlined;
-    if (type == AppbarActionType.trailing) {
-      icon = Icons.search;
-    }
+
+  /// Botones del AppBar
+  Widget _appBarBtn(AppbarActionType type) {
+    IconData icon =
+        type == AppbarActionType.trailing ? Icons.search : Icons.menu;
+
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
         color: AppColor.lightGrey,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: IconButton(
         padding: const EdgeInsets.all(8),
-        constraints: const BoxConstraints(),
         onPressed: () {},
         icon: Icon(icon, color: Colors.black),
       ),
     );
   }
 
+  /// AppBar superior
   PreferredSize get _appBar {
     return PreferredSize(
       preferredSize: const Size.fromHeight(100),
@@ -41,8 +120,8 @@ class ProductListScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              appBarActionButton(AppbarActionType.leading),
-              appBarActionButton(AppbarActionType.trailing),
+              _appBarBtn(AppbarActionType.leading),
+              _appBarBtn(AppbarActionType.trailing),
             ],
           ),
         ),
@@ -50,148 +129,89 @@ class ProductListScreen extends StatelessWidget {
     );
   }
 
-  Widget _recommendedProductListView(BuildContext context) {
-    return SizedBox(
-      height: 170,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        shrinkWrap: true,
-        scrollDirection: Axis.horizontal,
-        itemCount: AppData.recommendedProducts.length,
-        itemBuilder: (_, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: Container(
-              width: 300,
-              decoration: BoxDecoration(
-                color: AppData.recommendedProducts[index].cardBackgroundColor,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '30% OFF DURING \nCOVID 19',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
-                              ?.copyWith(
-                                color: Colors.white,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppData.recommendedProducts[index]
-                                .buttonBackgroundColor,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
-                          child: Text(
-                            "Get Now",
-                            style: TextStyle(
-                              color: AppData
-                                  .recommendedProducts[index].buttonTextColor!,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Image.asset(
-                    AppData.recommendedProducts[index].imagePath,
-                    height: 125,
-                    fit: BoxFit.cover,
-                  )
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _topCategoriesHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Top categories",
-            style: Theme.of(context).textTheme.headlineMedium,
+  /// Header de categorías
+  Widget _categoryHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Categorías", style: Theme.of(context).textTheme.headlineMedium),
+        TextButton(
+          onPressed: () {},
+          child: Text(
+            "VER TODO",
+            style: TextStyle(color: Colors.deepOrange.withOpacity(0.7)),
           ),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(foregroundColor: AppColor.darkOrange),
-            child: Text(
-              "SEE ALL",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.deepOrange.withValues(alpha: 0.7),
-                  ),
-            ),
-          )
-        ],
-      ),
+        )
+      ],
     );
   }
 
-  Widget _topCategoriesListView() {
+  /// Lista horizontal de categorías
+  Widget _categoryList() {
     return ListItemSelector(
       categories: controller.categories,
-      onItemPressed: (index) {
-        controller.filterItemsByCategory(index);
-      },
+      onItemPressed: (index) => controller.filterItemsByCategory(index),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    controller.getAllItems();
+    controller.loadAllProducts();
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: _appBar,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Bienvenido a YaVaz",
-                  style: Theme.of(context).textTheme.displayLarge,
-                ),
-                Text(
-                  "Revisa nuestras promociones",
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                _recommendedProductListView(context),
-                _topCategoriesHeader(context),
-                _topCategoriesListView(),
-                GetBuilder(
-                  builder: (ProductController controller) {
-                    return ProductGridView(
-                      items: controller.filteredProducts,
-                      likeButtonPressed: (index) =>
-                          controller.isFavorite(index),
-                      isPriceOff: (product) => controller.isPriceOff(product),
-                    );
-                  },
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Encabezado con logo y texto
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/images/logo2.png',
+                    height: 30,
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Bienvenido a YaVaz",
+                          style: Theme.of(context).textTheme.displaySmall),
+                      Text("Explora nuestros productos",
+                          style: Theme.of(context).textTheme.bodyMedium),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 15),
+
+              // CARRUSEL PROMOCIONAL
+              const _PromoCarousel(),
+
+              const SizedBox(height: 20),
+
+              // CATEGORÍAS
+              _categoryHeader(context),
+              _categoryList(),
+
+              const SizedBox(height: 20),
+
+              // LISTA DE PRODUCTOS
+              GetBuilder<ProductController>(
+                builder: (controller) {
+                  return ProductGridView(
+                    items: controller.filteredProducts,
+                    likeButtonPressed: (index) =>
+                        controller.toggleFavorite(index),
+                    isPriceOff: (product) => controller.isPriceOff(product),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),

@@ -1,51 +1,60 @@
 📂lib
- │───main.dart  
- │
- │───📂core  
- │   │──app_data.dart
- │   │──app_theme.dart
- │   │──app_color.dart
- │   └──extensions.dart
- │
- └───📂src
-     │
-     │────📂model
-     │    │──user.dart                 ← clase base (id, nombre, email, role) NUEVO
-     │    │──client.dart               ← modelo extendido (datos cliente) NUEVO
-     │    │──vendor.dart               ← modelo extendido (datos vendedor) NUEVO
-     │    │──product.dart
-     │    │──product_category.dart
-     │    │──product_size_type.dart
-     │    │──recommended_product.dart
-     │    │──categorical.dart
-     │    │──numerical.dart
-     │    └──bottom_nav_bar_item.dart
-     │
-     │────📂view
-     │    │
-     │    │───📂screen
-     │    │   │──login_screen.dart      ← login clientes/vendedores NUEVO
-     │    │   │──register_screen.dart   ← registro clientes/vendedores NUEVO
-     │    │   │──home_screen.dart
-     │    │   │──product_list_screen.dart
-     │    │   │──product_detail_screen.dart
-     │    │   │──favorite_screen.dart
-     │    │   │──cart_screen.dart
-     │    │   └──profile_screen.dart
-     │    │
-     │    │───📂widget
-     │    │   │──carousel_slider.dart
-     │    │   │──product_grid_view.dart
-     │    │   │──list_item_selector.dart
-     │    │   └──empty_cart.dart
-     │    │
-     │    └───📂animation
-     │        │──animated_switcher_wrapper.dart
-     │        │──open_container_wrapper.dart
-     │        └──page_transition_switcher_wrapper.dart
-     │
-     └────📂controller
-          │──auth_controller.dart       ← login/registro/logout NUEVO
-          │──client_controller.dart     ← lógica de cliente (pedidos, carrito, historial) NUEVO
-          │──vendor_controller.dart     ← lógica de vendedor (productos, ventas) NUEVO
-          └──product_controller.dart    ← lógica de productos compartida
+│
+├── main.dart
+│
+├── 📂core
+│   ├── app_data.dart
+│   ├── app_theme.dart
+│   ├── app_color.dart
+│   ├── extensions.dart
+│   └── session_manager.dart           ← Manejo de sesión y token JWT
+│
+└── 📂src
+    │
+    ├── 📂model                        ← Modelos (representan tablas de la BD)
+    │   ├── user.dart                  ← Usuario base (id, nombre, email, rol)
+    │   ├── client.dart                ← Extiende de User (dirección, teléfono, pedidos)
+    │   ├── vendor.dart                ← Extiende de User (productos, ventas)
+    │   ├── product.dart               ← Modelo producto (id, nombre, precio, imagen, stock)
+    │   ├── product_category.dart      ← Categorías (id, nombre)
+    │   ├── product_size_type.dart     ← Tamaños/presentaciones
+    │   ├── recommended_product.dart   ← Productos recomendados
+    │   ├── categorical.dart
+    │   ├── numerical.dart
+    │   └── bottom_nav_bar_item.dart
+    │
+    ├── 📂service                      ← Servicios HTTP que conectan con la API
+    │   ├── api_service.dart           ← Base para peticiones HTTP (GET/POST/PUT/DELETE)
+    │   ├── auth_service.dart          ← Login, registro, logout
+    │   ├── product_service.dart       ← CRUD de productos
+    │   ├── client_service.dart        ← Órdenes, historial, carrito de clientes
+    │   └── vendor_service.dart        ← Gestión de stock y ventas del vendedor
+    │
+    ├── 📂controller                   ← Controladores (con lógica de negocio)
+    │   ├── auth_controller.dart       ← Control de sesión y autenticación
+    │   ├── client_controller.dart     ← Maneja datos y acciones del cliente
+    │   ├── vendor_controller.dart     ← Maneja datos y acciones del vendedor
+    │   └── product_controller.dart    ← Controla los productos (para vistas compartidas)
+    │
+    └── 📂view                         ← Interfaz de usuario
+        │
+        ├── 📂screen
+        │   ├── login_screen.dart       ← Pantalla de login cliente/vendedor
+        │   ├── register_screen.dart    ← Pantalla de registro cliente/vendedor
+        │   ├── home_screen.dart        ← Pantalla principal
+        │   ├── product_list_screen.dart← Lista de productos
+        │   ├── product_detail_screen.dart ← Detalle de producto
+        │   ├── favorite_screen.dart    ← Productos favoritos
+        │   ├── cart_screen.dart        ← Carrito de compras
+        │   └── profile_screen.dart     ← Perfil (cliente/vendedor)
+        │
+        ├── 📂widget
+        │   ├── carousel_slider.dart
+        │   ├── product_grid_view.dart
+        │   ├── list_item_selector.dart
+        │   └── empty_cart.dart
+        │
+        └── 📂animation
+            ├── animated_switcher_wrapper.dart
+            ├── open_container_wrapper.dart
+            └── page_transition_switcher_wrapper.dart

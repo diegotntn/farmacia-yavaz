@@ -25,7 +25,7 @@ class OpenContainerWrapper extends StatelessWidget {
       closedBuilder: (_, VoidCallback openContainer) {
         return InkWell(onTap: openContainer, child: child);
       },
-      openBuilder: (_, __) => ProductDetailScreen(product),
+      openBuilder: (_, __) => ProductDetailScreen(product: product),
     );
   }
 }

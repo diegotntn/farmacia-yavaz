@@ -1,187 +1,260 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import 'package:e_commerce_flutter/core/app_color.dart';
 import 'package:e_commerce_flutter/src/model/product.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:e_commerce_flutter/src/view/widget/carousel_slider.dart';
 import 'package:e_commerce_flutter/src/controller/product_controller.dart';
 
+/// Controlador global de productos (GetX)
 final ProductController controller = Get.put(ProductController());
 
+/// ---------------------------------------------------------------------------
+/// PANTALLA DE DETALLE DE PRODUCTO
+///
+/// Muestra información detallada de un solo producto, incluyendo:
+/// - Imagen principal
+/// - Nombre, precio y descuento
+/// - Estado de stock
+/// - Descripción o texto simulado
+/// - Botón de agregar al carrito (solo si hay stock)
+/// ---------------------------------------------------------------------------
 class ProductDetailScreen extends StatelessWidget {
-  final Product product;
+  final Product product; // Producto recibido al abrir esta vista
 
-  const ProductDetailScreen(this.product, {super.key});
-
-  PreferredSizeWidget _appBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
-      ),
-    );
-  }
-
-  Widget productPageView(double width, double height) {
-    return Container(
-      height: height * 0.42,
-      width: width,
-      decoration: const BoxDecoration(
-        color: Color(0xFFE5E6E8),
-        borderRadius: BorderRadius.only(
-          bottomRight: Radius.circular(200),
-          bottomLeft: Radius.circular(200),
-        ),
-      ),
-      child: CarouselSlider(items: product.images),
-    );
-  }
-
-  Widget _ratingBar(BuildContext context) {
-    return Wrap(
-      spacing: 30,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        RatingBar.builder(
-          initialRating: product.rating,
-          direction: Axis.horizontal,
-          itemBuilder: (_, __) => const FaIcon(
-            FontAwesomeIcons.solidStar,
-            color: Colors.amber,
-          ),
-          onRatingUpdate: (_) {},
-        ),
-        Text(
-          "(4500 Reviews)",
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.w300,
-              ),
-        )
-      ],
-    );
-  }
-
-  Widget productSizesListView() {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: controller.sizeType(product).length,
-      itemBuilder: (_, index) {
-        return InkWell(
-          onTap: () => controller.switchBetweenProductSizes(product, index),
-          child: AnimatedContainer(
-            margin: const EdgeInsets.only(right: 5, left: 5),
-            alignment: Alignment.center,
-            width: controller.isNominal(product) ? 40 : 70,
-            decoration: BoxDecoration(
-              color: controller.sizeType(product)[index].isSelected == false ? Colors.white : AppColor.lightOrange,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.grey,
-                width: 0.4,
-              ),
-            ),
-            duration: const Duration(milliseconds: 300),
-            child: FittedBox(
-              child: Text(
-                controller.sizeType(product)[index].numerical,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  const ProductDetailScreen({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-    return SafeArea(
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: _appBar(context),
-        body: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  productPageView(width, height),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name,
-                          style: Theme.of(context).textTheme.displayMedium,
-                        ),
-                        const SizedBox(height: 10),
-                        _ratingBar(context),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Text(
-                              product.off != null ? "\$${product.off}" : "\$${product.price}",
-                              style: Theme.of(context).textTheme.displayLarge,
-                            ),
-                            const SizedBox(width: 3),
-                            Visibility(
-                              visible: product.off != null ? true : false,
-                              child: Text(
-                                "\$${product.price}",
-                                style: const TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              product.isAvailable ? "Available in stock" : "Not available",
-                              style: const TextStyle(fontWeight: FontWeight.w500),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: 30),
-                        Text(
-                          "About",
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(product.about),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 40,
-                          child: GetBuilder<ProductController>(
-                            builder: (_) => productSizesListView(),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: product.isAvailable ? () => controller.addToCart(product) : null,
-                            child: const Text("Add to cart"),
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
+    // Calcula si hay descuento
+    final bool hasDiscount = product.off != null;
+    // Calcula si hay unidades disponibles
+    final bool inStock = (product.stock ?? 0) > 0;
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+
+      appBar: AppBar(
+        title: Text(product.name),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          // Botón de favorito (reactivo)
+          IconButton(
+            icon: Icon(
+              product.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: product.isFavorite ? Colors.red : Colors.grey,
+            ),
+            onPressed: () => controller.toggleFavoriteByProduct(product),
+          ),
+        ],
+      ),
+
+      // Contenido principal
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ---------------------------------------------------------------
+            // Imagen del producto
+            // ---------------------------------------------------------------
+            Center(
+              child: Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Image.asset(
+                  product.images.first,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
-          ),
+
+            const SizedBox(height: 20),
+
+            // ---------------------------------------------------------------
+            // Nombre del producto
+            // ---------------------------------------------------------------
+            Text(
+              product.name,
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ---------------------------------------------------------------
+            // Precio (con o sin descuento)
+            // ---------------------------------------------------------------
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  hasDiscount ? "\$${product.off}" : "\$${product.price}",
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(color: Colors.deepOrange),
+                ),
+                const SizedBox(width: 8),
+                Visibility(
+                  visible: hasDiscount,
+                  child: Text(
+                    "\$${product.price}",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // ---------------------------------------------------------------
+            // Estado de stock (verde si disponible, rojo si agotado)
+            // ---------------------------------------------------------------
+            Row(
+              children: [
+                Icon(
+                  inStock ? Icons.check_circle : Icons.error_outline,
+                  color: inStock ? Colors.green : Colors.red,
+                  size: 20,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  inStock
+                      ? "Stock disponible: ${product.stock} unidades"
+                      : "Agotado",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: inStock ? Colors.green[800] : Colors.red[800],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // ---------------------------------------------------------------
+            // Descripción del producto (texto simulado)
+            // ---------------------------------------------------------------
+            Text(
+              "Descripción del producto",
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              "Este es un producto de alta calidad disponible en nuestra tienda. "
+              "Perfecto para quienes buscan un equilibrio entre rendimiento, "
+              "precio y estilo. ¡Aprovecha nuestras ofertas limitadas!",
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[700],
+                  ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // ---------------------------------------------------------------
+            // Botón de agregar al carrito (deshabilitado si no hay stock)
+            // ---------------------------------------------------------------
+            Center(
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: inStock
+                      ? () => controller.addToCart(product)
+                      : null, // 🔒 deshabilitado si no hay stock
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        inStock ? AppColor.darkOrange : Colors.grey.shade400,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_shopping_cart),
+                  label: Text(
+                    inStock
+                        ? "Agregar al carrito"
+                        : "No disponible actualmente",
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            // ---------------------------------------------------------------
+            // Productos recomendados o relacionados (si deseas)
+            // ---------------------------------------------------------------
+            Text(
+              "También te puede interesar",
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Mini lista de productos sugeridos (solo 2 o 3)
+            SizedBox(
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: AppColor.randomColors.length,
+                itemBuilder: (_, i) {
+                  final suggested =
+                      controller.allProducts[i % controller.allProducts.length];
+                  return GestureDetector(
+                    onTap: () => Get.to(
+                      () => ProductDetailScreen(product: suggested),
+                    ),
+                    child: Container(
+                      width: 140,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(suggested.images.first, height: 70),
+                          const SizedBox(height: 6),
+                          Text(
+                            suggested.name,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            "\$${suggested.price}",
+                            style: const TextStyle(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

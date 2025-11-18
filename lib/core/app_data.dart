@@ -8,24 +8,31 @@ import 'package:e_commerce_flutter/src/model/product_size_type.dart';
 import 'package:e_commerce_flutter/src/model/recommended_product.dart';
 import 'package:e_commerce_flutter/src/model/bottom_nav_bar_item.dart';
 
-/// Clase que almacena datos globales de la app, productos de ejemplo,
-/// categorías, colores y elementos de navegación.
+/// Configuración global de la app y datos simulados
 class AppData {
-  const AppData._(); // Constructor privado para evitar instanciación
+  const AppData._();
+
+  /// URL base de la API REST
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://api.tufarmacia.com/api',
+  );
 
   /// Texto de ejemplo
   static const String dummyText =
-      'Lorem Ipsum is simply dummy text of the printing and typesetting'
-      ' industry. Lorem Ipsum has been the industry\'s standard dummy text'
-      ' ever since the 1500s, when an unknown printer took a galley of type'
-      ' and scrambled it to make a type specimen book.';
+      'Lorem Ipsum is simply dummy text of the printing and typesetting industry. '
+      'Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s.';
 
-  /// Lista de productos de ejemplo
+  /// --------------------------------------------
+  /// 🛒 PRODUCTOS (no se modifican)
+  /// --------------------------------------------
   static List<Product> products = [
     Product(
-      sku: '0000000000001', // SKU único (13 dígitos aprox)
+      id: 1,
+      sku: '0000000000001',
       name: 'Samsung Galaxy A53 5G',
       price: 460,
+      stock: 15,
       isAvailable: true,
       off: 300,
       quantity: 0,
@@ -39,9 +46,11 @@ class AppData {
       type: ProductType.mobile,
     ),
     Product(
+      id: 2,
       sku: '0000000000002',
       name: 'Samsung Galaxy Tab S7 FE',
       price: 380,
+      stock: 10,
       isAvailable: false,
       off: 220,
       quantity: 0,
@@ -55,9 +64,11 @@ class AppData {
       type: ProductType.tablet,
     ),
     Product(
+      id: 3,
       sku: '0000000000003',
       name: 'Samsung Galaxy Tab S8+',
       price: 650,
+      stock: 20,
       isAvailable: true,
       off: null,
       quantity: 0,
@@ -71,9 +82,11 @@ class AppData {
       type: ProductType.tablet,
     ),
     Product(
+      id: 4,
       sku: '0000000000004',
       name: 'Samsung Galaxy Watch 4',
       price: 229,
+      stock: 25,
       isAvailable: true,
       off: 200,
       quantity: 0,
@@ -94,9 +107,11 @@ class AppData {
       type: ProductType.watch,
     ),
     Product(
+      id: 5,
       sku: '0000000000005',
       name: 'Apple Watch 7',
       price: 330,
+      stock: 30,
       isAvailable: true,
       off: null,
       quantity: 0,
@@ -116,9 +131,11 @@ class AppData {
       type: ProductType.watch,
     ),
     Product(
+      id: 6,
       sku: '0000000000006',
-      name: 'Beats studio 3',
+      name: 'Beats Studio 3',
       price: 230,
+      stock: 18,
       isAvailable: true,
       off: null,
       quantity: 0,
@@ -133,9 +150,11 @@ class AppData {
       type: ProductType.headphone,
     ),
     Product(
+      id: 7,
       sku: '0000000000007',
       name: 'Samsung Q60 A',
       price: 497,
+      stock: 12,
       isAvailable: true,
       off: null,
       quantity: 0,
@@ -155,9 +174,11 @@ class AppData {
       type: ProductType.tv,
     ),
     Product(
+      id: 8,
       sku: '0000000000008',
-      name: 'Sony x 80 J',
+      name: 'Sony X80J',
       price: 498,
+      stock: 10,
       isAvailable: true,
       off: null,
       quantity: 0,
@@ -178,35 +199,22 @@ class AppData {
     ),
   ];
 
-  /// Categorías de productos
+  /// --------------------------------------------
+  /// 🏷️ CATEGORÍAS
+  /// --------------------------------------------
   static List<ProductCategory> categories = [
+    ProductCategory(type: ProductType.all, icon: Icons.all_inclusive),
     ProductCategory(
-      type: ProductType.all,
-      icon: Icons.all_inclusive,
-    ),
-    ProductCategory(
-      type: ProductType.mobile,
-      icon: FontAwesomeIcons.mobileScreenButton,
-    ),
-    ProductCategory(
-      type: ProductType.watch,
-      icon: Icons.watch,
-    ),
-    ProductCategory(
-      type: ProductType.tablet,
-      icon: FontAwesomeIcons.tablet,
-    ),
-    ProductCategory(
-      type: ProductType.headphone,
-      icon: Icons.headphones,
-    ),
-    ProductCategory(
-      type: ProductType.tv,
-      icon: Icons.tv,
-    ),
+        type: ProductType.mobile, icon: FontAwesomeIcons.mobileScreenButton),
+    ProductCategory(type: ProductType.watch, icon: Icons.watch),
+    ProductCategory(type: ProductType.tablet, icon: FontAwesomeIcons.tablet),
+    ProductCategory(type: ProductType.headphone, icon: Icons.headphones),
+    ProductCategory(type: ProductType.tv, icon: Icons.tv),
   ];
 
-  /// Colores aleatorios para tarjetas
+  /// --------------------------------------------
+  /// PALETA DE COLORES
+  /// --------------------------------------------
   static List<Color> randomColors = [
     const Color(0xFFFCE4EC),
     const Color(0xFFF3E5F5),
@@ -220,35 +228,31 @@ class AppData {
 
   static const Color lightOrangeColor = Color(0xFFEC6813);
 
-  /// Items del bottom navigation bar
+  /// --------------------------------------------
+  /// BOTTOM NAV BAR
+  /// --------------------------------------------
   static List<BottomNavBarItem> bottomNavBarItems = [
-    const BottomNavBarItem(
-      "Home",
-      Icon(Icons.home),
-    ),
-    const BottomNavBarItem(
-      "Favorite",
-      Icon(Icons.favorite),
-    ),
-    const BottomNavBarItem(
-      "Cart",
-      Icon(Icons.shopping_cart),
-    ),
-    const BottomNavBarItem(
-      "Profile",
-      Icon(Icons.person),
-    ),
+    const BottomNavBarItem("Home", Icon(Icons.home)),
+    const BottomNavBarItem("Favorite", Icon(Icons.favorite)),
+    const BottomNavBarItem("Cart", Icon(Icons.shopping_cart)),
+    const BottomNavBarItem("Profile", Icon(Icons.person)),
   ];
 
-  /// Productos recomendados
+  /// --------------------------------------------
+  /// ⭐ PROMOCIONES (SOLO 2 BANNERS — tus imágenes)
+  /// --------------------------------------------
   static List<RecommendedProduct> recommendedProducts = [
     RecommendedProduct(
-      cardBackgroundColor: const Color(0xFFEC6813),
+      cardBackgroundColor: Color(0xFFE30613), // 🔴 Rojo YaVaz
+      imagePath: 'assets/images/promocion1.png',
+      buttonBackgroundColor: Colors.white,
+      buttonTextColor: Colors.red,
     ),
     RecommendedProduct(
-      cardBackgroundColor: const Color(0xFF3081E1),
-      buttonBackgroundColor: const Color(0xFF9C46FF),
-      buttonTextColor: Colors.white,
+      cardBackgroundColor: Color(0xFF004A98), // 🔵 Azul YaVaz
+      imagePath: 'assets/images/promocion2.png',
+      buttonBackgroundColor: Colors.white,
+      buttonTextColor: Colors.blue,
     ),
   ];
 }

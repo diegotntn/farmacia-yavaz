@@ -1,113 +1,166 @@
 import 'package:e_commerce_flutter/core/app_data.dart';
-import 'package:e_commerce_flutter/src/model/product_size_type.dart';
+import 'product_size_type.dart';
 
-/// Enum que representa los diferentes tipos de productos
+/// Enum que representa las categorías de productos disponibles.
+///
+/// ⚠️ Asegúrate de que estos valores coincidan con los enviados por el backend.
+/// Puedes extenderlo con categorías reales de farmacia: medicamentos, vitaminas, cuidado personal, etc.
 enum ProductType { all, watch, mobile, headphone, tablet, tv }
 
-/// Clase que representa un producto en la app
+/// Modelo de producto utilizado en la farmacia (con compatibilidad REST API).
+///
+/// Incluye campos como nombre, precio, stock, presentación, imágenes y estado de favorito.
 class Product {
-  /// Identificador único del producto (SKU, promedio 13 dígitos)
-  final String sku;
+  // -----------------------------------------------------------------------
+  // 🔹 CAMPOS PRINCIPALES DEL PRODUCTO
+  // -----------------------------------------------------------------------
 
-  /// Nombre del producto
+  /// ID único del producto (clave primaria)
+  final int id;
+
+  /// SKU o código interno del producto
+  final String? sku;
+
+  /// Nombre descriptivo del producto (ej. "Paracetamol 500mg")
   String name;
 
-  /// Precio del producto
-  int price;
+  /// Precio normal (sin descuento)
+  double price;
 
-  /// Descuento aplicado al producto (opcional)
+  /// Descuento aplicado (porcentaje, opcional)
   int? off;
 
-  /// Descripción del producto
+  /// Descripción larga (uso, ingredientes, etc.)
   String about;
 
-  /// Indica si el producto está disponible para la venta
+  /// Si el producto está activo en el catálogo
   bool isAvailable;
 
-  /// Tamaños o variantes del producto (opcional)
+  /// Tamaños o presentaciones (ej. 10 tabletas, 250 ml, etc.)
   ProductSizeType? sizes;
 
-  /// Cantidad interna del producto, manejada con getter/setter
+  /// Cantidad que el usuario ha añadido al carrito (no es el stock real)
   int _quantity;
+
+  /// Stock real en farmacia (control de inventario)
+  int stock;
 
   /// Lista de URLs de imágenes del producto
   List<String> images;
 
-  /// Indica si el producto está marcado como favorito
+  /// Si el usuario marcó como favorito este producto
   bool isFavorite;
 
-  /// Calificación del producto (rating)
+  /// Calificación promedio del producto (de 0.0 a 5.0)
   double rating;
 
-  /// Tipo del producto, según enum ProductType
+  /// Tipo o categoría del producto (ver enum)
   ProductType type;
 
-  /// Getter para la cantidad del producto
+  // -----------------------------------------------------------------------
+  // 🔹 GETTER Y SETTER DE CANTIDAD EN CARRITO
+  // -----------------------------------------------------------------------
+
+  /// Obtiene la cantidad que el usuario ha añadido al carrito
   int get quantity => _quantity;
 
-  /// Setter para la cantidad, asegura que nunca sea negativa
+  /// Modifica la cantidad en el carrito (nunca menor a 0)
   set quantity(int newQuantity) {
     if (newQuantity >= 0) _quantity = newQuantity;
   }
 
-  /// Constructor principal de la clase Product
+  // -----------------------------------------------------------------------
+  // 🔹 CONSTRUCTOR
+  // -----------------------------------------------------------------------
+
+  /// Constructor principal
   Product({
-    required this.sku,
-    this.sizes,
-    this.about = AppData.dummyText, // Valor por defecto
+    required this.id,
+    this.sku,
     required this.name,
     required this.price,
-    this.isAvailable = true, // Valor por defecto
     this.off,
+    this.about = AppData.dummyText,
+    this.isAvailable = true,
+    this.sizes,
     required int quantity,
+    required this.stock,
     required this.images,
-    this.isFavorite = false, // Valor por defecto
-    this.rating = 0.0, // Valor por defecto
+    this.isFavorite = false,
+    this.rating = 0.0,
     required this.type,
   }) : _quantity = quantity;
 
-  // ----------------- Serialización -----------------
+  // -----------------------------------------------------------------------
+  // 🔹 CONSTRUCTOR DESDE JSON (API → Modelo)
+  // -----------------------------------------------------------------------
 
-  /// Crea una instancia de Product desde un Map (JSON)
-  /// Permite reconstruir productos desde backend o almacenamiento local
+  /// Crea una instancia de [Product] desde un mapa JSON (ej. respuesta API)
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      sku: json['sku'] ?? '', // Valor por defecto si no existe
+      id: _parseInt(json['id']),
+      sku: json['sku'],
       name: json['name'] ?? '',
-      price: json['price'] ?? 0,
-      off: json['off'],
+      price: _parseDouble(json['price']),
+      off: _parseInt(json['off']),
       about: json['about'] ?? AppData.dummyText,
       isAvailable: json['isAvailable'] ?? true,
       sizes: json['sizes'] != null
           ? ProductSizeType.fromJson(json['sizes'])
-          : null, // Deserializa tamaños si existen
-      quantity: json['quantity'] ?? 0,
+          : null,
+      quantity: _parseInt(json['quantity']),
+      stock: _parseInt(json['stock']),
       images: List<String>.from(json['images'] ?? []),
       isFavorite: json['isFavorite'] ?? false,
-      rating: (json['rating'] ?? 0).toDouble(),
+      rating: _parseDouble(json['rating']),
       type: ProductType.values.firstWhere(
         (e) => e.toString() == 'ProductType.${json['type']}',
-        orElse: () => ProductType.all, // Tipo por defecto si no coincide
+        orElse: () => ProductType.all,
       ),
     );
   }
 
-  /// Convierte la instancia de Product a un Map (JSON)
-  /// Permite almacenar o enviar el producto a backend
+  // -----------------------------------------------------------------------
+  // 🔹 MÉTODO PARA CONVERTIR A JSON (Modelo → API)
+  // -----------------------------------------------------------------------
+
+  /// Convierte el objeto en un mapa JSON (ej. para enviar al backend)
   Map<String, dynamic> toJson() {
     return {
-      'sku': sku,
+      'id': id,
+      if (sku != null) 'sku': sku,
       'name': name,
       'price': price,
       'off': off,
       'about': about,
       'isAvailable': isAvailable,
-      'sizes': sizes?.toJson(), // Serializa tamaños si existen
+      'sizes': sizes?.toJson(),
       'quantity': _quantity,
+      'stock': stock,
       'images': images,
       'isFavorite': isFavorite,
       'rating': rating,
-      'type': type.toString().split('.').last, // Guarda solo el nombre del enum
+      'type': type.toString().split('.').last,
     };
+  }
+
+  // -----------------------------------------------------------------------
+  // 🔹 FUNCIONES AUXILIARES DE PARSEO
+  // -----------------------------------------------------------------------
+
+  /// Parsea cualquier valor dinámico a entero seguro
+  static int _parseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  /// Parsea cualquier valor dinámico a double seguro
+  static double _parseDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }

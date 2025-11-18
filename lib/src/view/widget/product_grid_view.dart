@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_flutter/src/model/product.dart';
 import 'package:e_commerce_flutter/src/view/animation/open_container_wrapper.dart';
 
+/// ---------------------------------------------------------------------------
+/// Widget que muestra una cuadrícula de productos.
+///
+/// Este componente recibe:
+/// - [items]: lista de productos a mostrar.
+/// - [isPriceOff]: función que determina si un producto tiene descuento.
+/// - [likeButtonPressed]: callback para alternar el estado de favorito.
+/// ---------------------------------------------------------------------------
 class ProductGridView extends StatelessWidget {
   const ProductGridView({
     super.key,
@@ -14,12 +22,16 @@ class ProductGridView extends StatelessWidget {
   final bool Function(Product product) isPriceOff;
   final void Function(int index) likeButtonPressed;
 
+  // -------------------------------------------------------------------------
+  // Encabezado: descuento y botón favorito
+  // -------------------------------------------------------------------------
   Widget _gridItemHeader(Product product, int index) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Texto "30% OFF"
           Visibility(
             visible: isPriceOff(product),
             child: Container(
@@ -36,6 +48,8 @@ class ProductGridView extends StatelessWidget {
               ),
             ),
           ),
+
+          // Botón favorito
           IconButton(
             icon: Icon(
               Icons.favorite,
@@ -50,6 +64,9 @@ class ProductGridView extends StatelessWidget {
     );
   }
 
+  // -------------------------------------------------------------------------
+  // Cuerpo: imagen del producto
+  // -------------------------------------------------------------------------
   Widget _gridItemBody(Product product) {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -61,63 +78,81 @@ class ProductGridView extends StatelessWidget {
     );
   }
 
+  // -------------------------------------------------------------------------
+  // Pie de tarjeta: nombre, precio, stock
+  // -------------------------------------------------------------------------
   Widget _gridItemFooter(Product product, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        height: 70,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(15),
-            bottomRight: Radius.circular(15),
-          ),
+    final bool hasDiscount = product.off != null;
+    final bool inStock = (product.stock ?? 0) > 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      height: 95, // 🔧 Altura ajustada para evitar overflow
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              child: Text(
-                product.name,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // Nombre del producto
+          Text(
+            product.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+              fontSize: 14,
+            ),
+          ),
+
+          // Precio (con descuento si aplica)
+          Row(
+            children: [
+              Text(
+                hasDiscount ? "\$${product.off}" : "\$${product.price}",
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(width: 4),
+              Visibility(
+                visible: hasDiscount,
+                child: Text(
+                  "\$${product.price}",
+                  style: const TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ),
                 ),
               ),
+            ],
+          ),
+
+          // Stock
+          Text(
+            inStock ? "Stock: ${product.stock} unidades" : "Agotado",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: inStock ? Colors.green[700] : Colors.red[700],
             ),
-            const SizedBox(height: 5),
-            Row(
-              children: [
-                Text(
-                  product.off != null
-                      ? "\$${product.off}"
-                      : "\$${product.price}",
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(width: 3),
-                Visibility(
-                  visible: product.off != null ? true : false,
-                  child: Text(
-                    "\$${product.price}",
-                    style: const TextStyle(
-                      decoration: TextDecoration.lineThrough,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                )
-              ],
-            )
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
+  // -------------------------------------------------------------------------
+  // Render de la grilla de productos
+  // -------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -127,13 +162,13 @@ class ProductGridView extends StatelessWidget {
         shrinkWrap: true,
         physics: const ScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          childAspectRatio: 10 / 16,
           crossAxisCount: 2,
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
+          childAspectRatio: 10 / 16,
         ),
         itemBuilder: (_, index) {
-          Product product = items[index];
+          final product = items[index];
           return OpenContainerWrapper(
             product: product,
             child: GridTile(
