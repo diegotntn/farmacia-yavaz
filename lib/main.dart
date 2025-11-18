@@ -9,6 +9,7 @@ import 'package:e_commerce_flutter/core/app_theme.dart';
 import 'package:e_commerce_flutter/core/session_manager.dart';
 
 // ==== SCREENS ====
+import 'package:e_commerce_flutter/src/view/screen/splash_screen.dart';
 import 'package:e_commerce_flutter/src/view/screen/login_screen.dart';
 import 'package:e_commerce_flutter/src/view/screen/home_screen.dart';
 
@@ -20,14 +21,16 @@ import 'package:e_commerce_flutter/src/controller/vendor_controller.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Recupera token de sesión (si existe)
-  final token = await SessionManager.getToken();
+  // Inicializar almacenamiento y sesión
+  await SessionManager.getToken(); // asegura acceso antes de construir el árbol
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ClientController()),
         ChangeNotifierProvider(create: (_) => VendorController()),
+
+        // AuthController depende de Client y Vendor
         ChangeNotifierProxyProvider2<ClientController, VendorController,
             AuthController>(
           create: (_) => AuthController(
@@ -40,25 +43,26 @@ void main() async {
           ),
         ),
       ],
-      child: MyApp(initialToken: token),
+      child: const MyApp(),
     ),
   );
 }
 
-/// Widget raíz de la aplicación
+/// ===========================================================================
+/// 🌟 Widget raíz de la aplicación
+/// ===========================================================================
 class MyApp extends StatelessWidget {
-  final String? initialToken;
-  const MyApp({super.key, required this.initialToken});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
 
-      // Estilo visual YaVaz
+      // 🎨 Tema visual YaVaz
       theme: AppTheme.lightAppTheme,
 
-      // Soporte para touch y mouse (scroll adaptable)
+      // Permitir scroll táctil + mouse
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         dragDevices: {
           PointerDeviceKind.mouse,
@@ -66,14 +70,14 @@ class MyApp extends StatelessWidget {
         },
       ),
 
-      // Rutas disponibles
+      // 🌎 Navegación centralizada
       routes: {
         '/login': (_) => const LoginScreen(),
         '/home': (_) => const HomeScreen(),
       },
 
-      // Ruta inicial según sesión
-      initialRoute: initialToken == null ? '/login' : '/home',
+      // 🚀 SplashScreen al iniciar SIEMPRE
+      home: const SplashScreen(),
     );
   }
 }
