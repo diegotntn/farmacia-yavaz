@@ -1,56 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'package:e_commerce_flutter/src/controller/product_controller.dart';
 import 'package:e_commerce_flutter/src/view/widget/product_grid_view.dart';
 
-/// Usamos el controlador existente
-final ProductController controller = Get.find<ProductController>();
-
-class FavoriteScreen extends StatelessWidget {
+class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
 
   @override
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
+}
+
+class _FavoriteScreenState extends State<FavoriteScreen> {
+  final ProductController controller = Get.find<ProductController>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 📌 Evita el error de actualización durante la animación.
+    Future.microtask(() {
+      controller.showFavoriteItems();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // ✅ Se usa el método correcto
-    controller.showFavoriteItems();
+    final Color rojo = const Color(0xFFE53935);
+    final Color azul = const Color(0xFF1E88E5);
+    final Color blanco = Colors.white;
 
     return Scaffold(
+      backgroundColor: blanco,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: rojo,
+        centerTitle: true,
         title: Text(
-          "Favorites",
-          style: Theme.of(context).textTheme.displayLarge,
+          "Mis Favoritos",
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: blanco,
+                fontWeight: FontWeight.bold,
+              ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: GetBuilder<ProductController>(
           builder: (controller) {
-            // Lista solo con productos favoritos
             final favorites =
                 controller.filteredProducts.where((p) => p.isFavorite).toList();
 
-            // Si no hay favoritos, mostrar mensaje
+            // -----------------------------------------------------------------
+            // Estado vacío — cuando no hay productos favoritos
+            // -----------------------------------------------------------------
             if (favorites.isEmpty) {
-              return const Center(
-                child: Text(
-                  "You have no favorite products yet ❤️",
-                  style: TextStyle(fontSize: 18),
-                ),
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border,
+                    size: 100,
+                    color: azul.withOpacity(0.7),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    "Todavía no tienes productos favoritos",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Presiona el ícono ❤️ en un producto para agregarlo.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
               );
             }
 
+            // -----------------------------------------------------------------
+            // Render de los productos favoritos
+            // -----------------------------------------------------------------
             return ProductGridView(
               items: favorites,
-
-              // Alterna favorito al presionar el botón
               likeButtonPressed: (index) {
-                controller.toggleFavorite(
-                  controller.filteredProducts.indexOf(favorites[index]),
-                );
+                Future.microtask(() {
+                  controller.toggleFavorite(
+                    controller.filteredProducts.indexOf(favorites[index]),
+                  );
+                });
               },
-
-              isPriceOff: (product) => controller.isPriceOff(product),
+              isPriceOff: controller.isPriceOff,
             );
           },
         ),

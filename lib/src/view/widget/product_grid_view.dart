@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_flutter/src/model/product.dart';
 import 'package:e_commerce_flutter/src/view/animation/open_container_wrapper.dart';
 
-/// ---------------------------------------------------------------------------
+/// ============================================================================
 /// Widget que muestra una cuadrícula de productos.
 ///
-/// Este componente recibe:
-/// - [items]: lista de productos a mostrar.
-/// - [isPriceOff]: función que determina si un producto tiene descuento.
-/// - [likeButtonPressed]: callback para alternar el estado de favorito.
-/// ---------------------------------------------------------------------------
+/// Parámetros:
+///  - [items]: Lista de productos.
+///  - [isPriceOff]: Función que determina si un producto tiene descuento.
+///  - [likeButtonPressed]: Callback para alternar el estado favorito.
+/// ============================================================================
 class ProductGridView extends StatelessWidget {
   const ProductGridView({
     super.key,
@@ -22,26 +22,26 @@ class ProductGridView extends StatelessWidget {
   final bool Function(Product product) isPriceOff;
   final void Function(int index) likeButtonPressed;
 
-  // -------------------------------------------------------------------------
-  // Encabezado: descuento y botón favorito
-  // -------------------------------------------------------------------------
-  Widget _gridItemHeader(Product product, int index) {
+  // ----------------------------------------------------------------------------
+  // Encabezado: botón favorito + etiqueta de descuento
+  // ----------------------------------------------------------------------------
+  Widget _buildHeader(Product product, int index) {
     return Padding(
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Texto "30% OFF"
+          /// Etiqueta de descuento
           Visibility(
             visible: isPriceOff(product),
             child: Container(
+              width: 80,
+              height: 30,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: Colors.white,
               ),
-              width: 80,
-              height: 30,
-              alignment: Alignment.center,
               child: const Text(
                 "30% OFF",
                 style: TextStyle(fontWeight: FontWeight.w600),
@@ -49,7 +49,7 @@ class ProductGridView extends StatelessWidget {
             ),
           ),
 
-          // Botón favorito
+          /// Botón de favoritos
           IconButton(
             icon: Icon(
               Icons.favorite,
@@ -57,17 +57,22 @@ class ProductGridView extends StatelessWidget {
                   ? Colors.redAccent
                   : const Color(0xFFA6A3A0),
             ),
-            onPressed: () => likeButtonPressed(index),
+            onPressed: () {
+              // 🔥 FIX DEL ERROR setState during build
+              Future.microtask(() {
+                likeButtonPressed(index);
+              });
+            },
           ),
         ],
       ),
     );
   }
 
-  // -------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------
   // Cuerpo: imagen del producto
-  // -------------------------------------------------------------------------
-  Widget _gridItemBody(Product product) {
+  // ----------------------------------------------------------------------------
+  Widget _buildImage(Product product) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -78,16 +83,16 @@ class ProductGridView extends StatelessWidget {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Pie de tarjeta: nombre, precio, stock
-  // -------------------------------------------------------------------------
-  Widget _gridItemFooter(Product product, BuildContext context) {
+  // ----------------------------------------------------------------------------
+  // Pie: nombre, precio y stock
+  // ----------------------------------------------------------------------------
+  Widget _buildFooter(Product product, BuildContext context) {
     final bool hasDiscount = product.off != null;
     final bool inStock = (product.stock ?? 0) > 0;
 
     return Container(
+      height: 95,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      height: 95, // 🔧 Altura ajustada para evitar overflow
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -99,19 +104,19 @@ class ProductGridView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Nombre del producto
+          /// Nombre
           Text(
             product.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontWeight: FontWeight.w500,
               color: Colors.grey,
+              fontWeight: FontWeight.w500,
               fontSize: 14,
             ),
           ),
 
-          // Precio (con descuento si aplica)
+          /// Precio
           Row(
             children: [
               Text(
@@ -128,15 +133,15 @@ class ProductGridView extends StatelessWidget {
                   style: const TextStyle(
                     decoration: TextDecoration.lineThrough,
                     color: Colors.grey,
-                    fontWeight: FontWeight.w500,
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
 
-          // Stock
+          /// Stock
           Text(
             inStock ? "Stock: ${product.stock} unidades" : "Agotado",
             style: TextStyle(
@@ -150,9 +155,9 @@ class ProductGridView extends StatelessWidget {
     );
   }
 
-  // -------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------
   // Render de la grilla de productos
-  // -------------------------------------------------------------------------
+  // ----------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -169,12 +174,13 @@ class ProductGridView extends StatelessWidget {
         ),
         itemBuilder: (_, index) {
           final product = items[index];
+
           return OpenContainerWrapper(
             product: product,
             child: GridTile(
-              header: _gridItemHeader(product, index),
-              footer: _gridItemFooter(product, context),
-              child: _gridItemBody(product),
+              header: _buildHeader(product, index),
+              footer: _buildFooter(product, context),
+              child: _buildImage(product),
             ),
           );
         },

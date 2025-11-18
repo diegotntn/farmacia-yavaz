@@ -9,15 +9,17 @@ import 'package:e_commerce_flutter/src/controller/product_controller.dart';
 import 'package:e_commerce_flutter/src/view/widget/list_item_selector.dart';
 import 'package:e_commerce_flutter/src/view/widget/product_grid_view.dart';
 
-/// Tipos de botones del AppBar
+/// ------------------------------------------------------------
+/// APPBAR BUTTON TYPE
+/// ------------------------------------------------------------
 enum AppbarActionType { leading, trailing }
 
-/// Controlador global GetX (productos)
+/// Controlador global GetX
 final ProductController controller = Get.put(ProductController());
 
-/// =====================================================================
-///                           PROMO CAROUSEL
-/// =====================================================================
+/// ------------------------------------------------------------
+/// PROMO CAROUSEL
+/// ------------------------------------------------------------
 class _PromoCarousel extends StatefulWidget {
   const _PromoCarousel({super.key});
 
@@ -45,6 +47,7 @@ class _PromoCarouselState extends State<_PromoCarousel> {
     _timer = Timer.periodic(const Duration(seconds: 7), (_) {
       if (!mounted) return;
       _currentPage = (_currentPage + 1) % banners.length;
+
       _pageController.animateToPage(
         _currentPage,
         duration: const Duration(milliseconds: 500),
@@ -85,13 +88,28 @@ class _PromoCarouselState extends State<_PromoCarousel> {
   }
 }
 
-/// =====================================================================
-///                           PRODUCT LIST SCREEN
-/// =====================================================================
-class ProductListScreen extends StatelessWidget {
+/// ------------------------------------------------------------
+/// PRODUCT LIST SCREEN (CORREGIDO)
+/// ------------------------------------------------------------
+class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
-  /// Botones del AppBar
+  @override
+  State<ProductListScreen> createState() => _ProductListScreenState();
+}
+
+class _ProductListScreenState extends State<ProductListScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    /// 🔥 Cargar productos de forma segura
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadAllProducts();
+    });
+  }
+
+  /// Botón del AppBar
   Widget _appBarBtn(AppbarActionType type) {
     IconData icon =
         type == AppbarActionType.trailing ? Icons.search : Icons.menu;
@@ -156,8 +174,6 @@ class ProductListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.loadAllProducts();
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: _appBar,
@@ -167,7 +183,7 @@ class ProductListScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Encabezado con logo y texto
+              /// HEADER LOGO + TEXTO
               Row(
                 children: [
                   Image.asset(
@@ -189,18 +205,18 @@ class ProductListScreen extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              // CARRUSEL PROMOCIONAL
+              /// CAROUSEL
               const _PromoCarousel(),
 
               const SizedBox(height: 20),
 
-              // CATEGORÍAS
+              /// CATEGORÍAS
               _categoryHeader(context),
               _categoryList(),
 
               const SizedBox(height: 20),
 
-              // LISTA DE PRODUCTOS
+              /// PRODUCTOS
               GetBuilder<ProductController>(
                 builder: (controller) {
                   return ProductGridView(
