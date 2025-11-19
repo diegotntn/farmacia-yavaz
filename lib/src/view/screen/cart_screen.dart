@@ -73,7 +73,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             child: Row(
               children: [
-                // 🖼 Imagen
+                // 🖼 Imagen (con fallback capitan.jpg transparente)
                 Container(
                   width: 90,
                   height: 90,
@@ -83,10 +83,18 @@ class _CartScreenState extends State<CartScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      product.images.first,
-                      fit: BoxFit.cover,
-                    ),
+                    child: product.images.isNotEmpty
+                        ? Image.asset(
+                            product.images.first,
+                            fit: BoxFit.cover,
+                          )
+                        : Opacity(
+                            opacity: 0.45, // Transparencia ajustable
+                            child: Image.asset(
+                              "assets/images/capitan.jpg",
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                   ),
                 ),
 
